@@ -149,6 +149,10 @@ input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--da
 .btn.small { padding: 4px 12px; font-size: 0.9rem; }
 .btn.large { padding: 14px 28px; font-size: 1.15rem; width: 100%; }
 .btn.link { border: 0; background: none; color: var(--green-dark); text-decoration: underline; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.danger:hover { background: #fdecea; border-color: var(--danger); }
+.btn.danger-solid { background: var(--danger); border-color: var(--danger); color: #ffffff; font-weight: bold; }
+.btn.danger-solid:hover { background: #8f1f18; border-color: #8f1f18; }
 
 .menu-options {
   width: 100%;
@@ -180,6 +184,23 @@ input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--da
 .result-card h3 { margin: 0; font-size: 1.2rem; }
 .result-card p { margin: 2px 0; overflow-wrap: anywhere; }
 .result-card .muted { color: var(--muted); }
+.result-card .btn { margin-top: 8px; }
+
+.record-fields { list-style: none; margin: 0 0 8px; padding: 0; }
+
+.record-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 0;
+  border-top: 1px solid #e5e5e5;
+}
+
+.record-label { flex-basis: 100%; font-weight: bold; }
+.record-value { overflow-wrap: anywhere; }
+.record-value.muted { color: var(--muted); font-style: italic; }
 
 @media (max-width: 480px) {
   .app-header h1 { font-size: 1.4rem; }

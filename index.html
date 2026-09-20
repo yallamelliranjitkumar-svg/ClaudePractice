@@ -154,6 +154,20 @@
       <ul id="results" class="results"></ul>
       <button type="button" class="btn link back-btn" data-back>Back to menu</button>
     </section>
+
+    <!-- Record: view one provider, delete a field or the whole provider -->
+    <section id="screen-record" class="screen" aria-labelledby="record-title" hidden>
+      <h2 id="record-title">Provider record</h2>
+      <div class="card">
+        <h3 id="record-name"></h3>
+        <ul id="record-fields" class="record-fields"></ul>
+        <p id="record-status" class="status" role="status" aria-live="polite"></p>
+        <div class="actions">
+          <button type="button" id="record-delete" class="btn danger-solid">Delete this provider</button>
+        </div>
+      </div>
+      <button type="button" id="record-back" class="btn link back-btn">Back to results</button>
+    </section>
   </main>
 
   <script src="app.js"></script>

@@ -47,8 +47,13 @@ https://yallamelliranjitkumar-svg.github.io/ClaudePractice/
    3. Phone number (required) and Fax number (optional)
 
    The provider is stored when the last step is saved. PIDs must be unique. Use **Edit** on a saved section to fix a mistake before the final save.
-4. **Find a Provider**: enter a PID (exact match) or a name (any order, partial matches allowed).
-5. **Log out** from the header.
+4. **Find a Provider**: enter a PID (exact match) or a name (any order, partial matches allowed). Click **Open record** on a result to see the full record.
+5. **On the record screen** you can:
+   - **Delete a single field** with the red **Delete** button beside it (for example a fax number or a wrong address line). The field then shows "not provided". The **PID cannot be deleted on its own**, because it identifies the record.
+   - **Delete the whole provider** with **Delete this provider**.
+
+   Both actions ask for confirmation first. Deleting is permanent, since the data lives only in this browser.
+6. **Log out** from the header.
 
 ## Where the data is stored
 
@@ -67,4 +72,4 @@ A static page cannot keep a password secret. To protect real data you need a bac
 
 ## Project status
 
-First version. Not yet done: editing or deleting saved providers, a shared database, and real authentication.
+Works today: insert, find, delete a field, delete a provider. Not yet done: editing or re-adding a field value on a saved provider, a shared database, and real authentication.

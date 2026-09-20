@@ -19,7 +19,8 @@
     login: document.getElementById("screen-login"),
     menu: document.getElementById("screen-menu"),
     insert: document.getElementById("screen-insert"),
-    find: document.getElementById("screen-find")
+    find: document.getElementById("screen-find"),
+    record: document.getElementById("screen-record")
   };
   var logoutBtn = document.getElementById("logout-btn");
 
@@ -264,9 +265,57 @@
 
   /* ---------- find ---------- */
 
-  function fullName(p) {
+  // The record screen lists these in order. `group` means the value lives under p.address.
+  // PID is the record's identifier, so it is shown but cannot be deleted on its own.
+  var FIELD_DEFS = [
+    { key: "pid", label: "PID", fixed: true },
+    { key: "firstName", label: "First name" },
+    { key: "middleInitial", label: "Middle initial" },
+    { key: "lastName", label: "Last name" },
+    { key: "specialty", label: "Speciality" },
+    { key: "line1", label: "Address first line", group: "address" },
+    { key: "city", label: "City", group: "address" },
+    { key: "pincode", label: "Pincode", group: "address" },
+    { key: "state", label: "State", group: "address" },
+    { key: "phone", label: "Phone number" },
+    { key: "fax", label: "Fax number" }
+  ];
+
+  var lastQuery = "";   // so "Back to results" can re-run the search that led to a record
+  var openPid = null;   // PID of the record currently shown on the record screen
+
+  var recordName = document.getElementById("record-name");
+  var recordFields = document.getElementById("record-fields");
+  var recordStatus = document.getElementById("record-status");
+
+  // Name as typed, without a placeholder. Used for searching.
+  function nameParts(p) {
     return [p.firstName, p.middleInitial ? p.middleInitial + "." : "", p.lastName]
       .filter(Boolean).join(" ");
+  }
+
+  // Name for display. A record can lose its name fields, so fall back to a placeholder.
+  function fullName(p) {
+    return nameParts(p) || "(no name on record)";
+  }
+
+  function addressLine(p) {
+    var a = p.address;
+    return [a.line1, a.city, [a.state, a.pincode].filter(Boolean).join(" ")]
+      .filter(Boolean).join(", ") || "not provided";
+  }
+
+  function getField(p, def) {
+    return (def.group ? p[def.group][def.key] : p[def.key]) || "";
+  }
+
+  function setField(p, def, val) {
+    if (def.group) p[def.group][def.key] = val;
+    else p[def.key] = val;
+  }
+
+  function findProvider(pid) {
+    return providers.filter(function (p) { return p.pid === pid; })[0];
   }
 
   function el(tag, text, className) {
@@ -280,10 +329,15 @@
     var li = el("li", undefined, "result-card");
     li.appendChild(el("h3", fullName(p)));
     li.appendChild(el("p", "PID: " + p.pid));
-    li.appendChild(el("p", p.specialty, "muted"));
-    li.appendChild(el("p", p.address.line1 + ", " + p.address.city + ", " + p.address.state + " " + p.address.pincode));
-    li.appendChild(el("p", "Phone: " + p.phone));
+    if (p.specialty) li.appendChild(el("p", p.specialty, "muted"));
+    li.appendChild(el("p", addressLine(p)));
+    li.appendChild(el("p", "Phone: " + (p.phone || "not provided")));
     li.appendChild(el("p", "Fax: " + (p.fax || "not provided")));
+
+    var open = el("button", "Open record", "btn small");
+    open.type = "button";
+    open.addEventListener("click", function () { openRecord(p.pid); });
+    li.appendChild(open);
     return li;
   }
 
@@ -295,37 +349,114 @@
     var q = normalize(query);
     return providers.filter(function (p) {
       if (p.pid.toLowerCase() === query.toLowerCase()) return true;
-      var full = normalize(fullName(p));
-      var reversed = normalize(p.lastName + " " + p.firstName + " " + p.middleInitial);
+      var full = normalize(nameParts(p));
+      var reversed = normalize([p.lastName, p.firstName, p.middleInitial].filter(Boolean).join(" "));
       return full.indexOf(q) !== -1 || reversed.indexOf(q) !== -1;
     });
   }
 
-  findForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var query = value(findForm, "query");
+  // `notice` is an optional message (for example "Provider deleted.") shown before the result count.
+  function runSearch(query, notice) {
+    lastQuery = query;
     resultsEl.textContent = "";
 
     if (!query) {
-      findStatus.textContent = "Enter a PID or a name to search.";
+      findStatus.textContent = notice || "Enter a PID or a name to search.";
       return;
     }
     var matches = search(query);
-    if (matches.length === 0) {
-      findStatus.textContent = "No provider found for \"" + query + "\".";
-      return;
-    }
-    findStatus.textContent = matches.length + (matches.length === 1 ? " provider found." : " providers found.");
+    var summary = matches.length === 0
+      ? "No provider found for \"" + query + "\"."
+      : matches.length + (matches.length === 1 ? " provider found." : " providers found.");
+    findStatus.textContent = notice ? notice + " " + summary : summary;
     matches.forEach(function (p) { resultsEl.appendChild(renderResult(p)); });
+  }
+
+  findForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    runSearch(value(findForm, "query"));
   });
 
   function startFind() {
     findForm.reset();
+    lastQuery = "";
     findStatus.textContent = "";
     resultsEl.textContent = "";
     show("find");
     findForm.elements.query.focus();
   }
+
+  /* ---------- record: view, delete a field, delete the provider ---------- */
+
+  function renderRecord() {
+    var p = findProvider(openPid);
+    if (!p) { backToResults(); return; }
+
+    recordName.textContent = fullName(p);
+    recordFields.textContent = "";
+    FIELD_DEFS.forEach(function (def) {
+      var val = getField(p, def);
+      var row = el("li", undefined, "record-row");
+      row.appendChild(el("span", def.label, "record-label"));
+      row.appendChild(el("span", val || "not provided", val ? "record-value" : "record-value muted"));
+      if (!def.fixed && val) {
+        var del = el("button", "Delete", "btn small danger");
+        del.type = "button";
+        del.setAttribute("aria-label", "Delete " + def.label);
+        del.addEventListener("click", function () { deleteField(p.pid, def); });
+        row.appendChild(del);
+      }
+      recordFields.appendChild(row);
+    });
+  }
+
+  function openRecord(pid) {
+    openPid = pid;
+    recordStatus.textContent = "";
+    renderRecord();
+    show("record");
+    window.scrollTo(0, 0);
+  }
+
+  function backToResults(notice) {
+    openPid = null;
+    show("find");
+    runSearch(lastQuery, notice);
+  }
+
+  function deleteField(pid, def) {
+    var p = findProvider(pid);
+    if (!p) return;
+    if (!window.confirm("Delete the " + def.label.toLowerCase() + " (\"" + getField(p, def) + "\") for " + fullName(p) + "?")) return;
+
+    var previous = getField(p, def);
+    setField(p, def, "");
+    if (!persistProviders()) {
+      setField(p, def, previous);
+      recordStatus.textContent = "Could not delete: browser storage is unavailable or full.";
+    } else {
+      recordStatus.textContent = def.label + " deleted.";
+    }
+    renderRecord();
+  }
+
+  function deleteProvider() {
+    var p = findProvider(openPid);
+    if (!p) return;
+    if (!window.confirm("Permanently delete " + fullName(p) + " (PID " + p.pid + ")? This cannot be undone.")) return;
+
+    var index = providers.indexOf(p);
+    providers.splice(index, 1);
+    if (!persistProviders()) {
+      providers.splice(index, 0, p);
+      recordStatus.textContent = "Could not delete: browser storage is unavailable or full.";
+      return;
+    }
+    backToResults("Provider " + p.pid + " was deleted.");
+  }
+
+  document.getElementById("record-delete").addEventListener("click", deleteProvider);
+  document.getElementById("record-back").addEventListener("click", function () { backToResults(); });
 
   /* ---------- login / navigation ---------- */
 
@@ -347,6 +478,8 @@
   logoutBtn.addEventListener("click", function () {
     resetInsert();
     findForm.reset();
+    lastQuery = "";
+    openPid = null;
     resultsEl.textContent = "";
     findStatus.textContent = "";
     show("login");

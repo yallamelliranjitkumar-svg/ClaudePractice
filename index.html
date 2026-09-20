@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NonStaff Physician Directory</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>NonStaff Physician Directory</h1>
+    <button type="button" id="logout-btn" class="btn small" hidden>Log out</button>
+  </header>
+
+  <main>
+    <!-- 1. Login -->
+    <section id="screen-login" class="screen" aria-labelledby="login-title">
+      <h2 id="login-title">Log in</h2>
+      <form id="login-form" class="card" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <p id="login-error" class="error" role="alert" hidden>Incorrect username or password.</p>
+        <button type="submit" class="btn primary">Log in</button>
+      </form>
+    </section>
+
+    <!-- 2. Menu -->
+    <section id="screen-menu" class="screen" aria-labelledby="menu-title" hidden>
+      <h2 id="menu-title">What would you like to do?</h2>
+      <div class="menu-options">
+        <button type="button" id="menu-insert" class="btn primary large">Insert a Provider</button>
+        <button type="button" id="menu-find" class="btn primary large">Find a Provider</button>
+      </div>
+    </section>
+
+    <!-- 3-5. Insert a provider -->
+    <section id="screen-insert" class="screen" aria-labelledby="insert-title" hidden>
+      <h2 id="insert-title">Insert a Provider</h2>
+
+      <form id="form-person" class="card" novalidate>
+        <h3>Provider details</h3>
+        <fieldset id="fs-person">
+          <div class="field">
+            <label for="pid">PID</label>
+            <input id="pid" name="pid" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="pid" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="firstName">First name</label>
+            <input id="firstName" name="firstName" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="firstName" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="middleInitial">Middle initial</label>
+            <input id="middleInitial" name="middleInitial" type="text" maxlength="1" autocomplete="off" class="short">
+          </div>
+          <div class="field">
+            <label for="lastName">Last name</label>
+            <input id="lastName" name="lastName" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="lastName" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="specialty">Speciality</label>
+            <select id="specialty" name="specialty" required>
+              <option value="">Select a speciality</option>
+            </select>
+            <p class="error" data-error-for="specialty" role="alert" hidden></p>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <button type="submit" class="btn primary" data-save>Save</button>
+          <button type="button" class="btn" data-edit hidden>Edit</button>
+        </div>
+      </form>
+
+      <form id="form-address" class="card" novalidate hidden>
+        <h3>Address</h3>
+        <fieldset id="fs-address">
+          <div class="field">
+            <label for="line1">Address first line</label>
+            <input id="line1" name="line1" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="line1" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" name="city" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="city" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="pincode">Pincode</label>
+            <input id="pincode" name="pincode" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="pincode" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="state">State</label>
+            <input id="state" name="state" type="text" autocomplete="off" required>
+            <p class="error" data-error-for="state" role="alert" hidden></p>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <button type="submit" class="btn primary" data-save>Save</button>
+          <button type="button" class="btn" data-edit hidden>Edit</button>
+        </div>
+      </form>
+
+      <form id="form-phone" class="card" novalidate hidden>
+        <h3>Phone and fax</h3>
+        <fieldset id="fs-phone">
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input id="phone" name="phone" type="tel" autocomplete="off" required>
+            <p class="error" data-error-for="phone" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="fax">Fax number</label>
+            <input id="fax" name="fax" type="tel" autocomplete="off">
+            <p class="error" data-error-for="fax" role="alert" hidden></p>
+          </div>
+        </fieldset>
+        <p class="error" id="phone-form-error" role="alert" hidden></p>
+        <div class="actions">
+          <button type="submit" class="btn primary" data-save>Save</button>
+        </div>
+      </form>
+
+      <div id="insert-done" class="card done" hidden>
+        <h3>Provider saved</h3>
+        <p id="insert-done-msg"></p>
+        <div class="actions">
+          <button type="button" id="insert-another" class="btn primary">Insert another provider</button>
+        </div>
+      </div>
+
+      <button type="button" class="btn link back-btn" data-back>Back to menu</button>
+    </section>
+
+    <!-- Find a provider -->
+    <section id="screen-find" class="screen" aria-labelledby="find-title" hidden>
+      <h2 id="find-title">Find a Provider</h2>
+      <form id="find-form" class="card" novalidate>
+        <div class="field">
+          <label for="query">PID or Name</label>
+          <input id="query" name="query" type="search" autocomplete="off" placeholder="Enter a PID or a name">
+        </div>
+        <button type="submit" class="btn primary">Search</button>
+      </form>
+      <p id="find-status" class="status" role="status" aria-live="polite"></p>
+      <ul id="results" class="results"></ul>
+      <button type="button" class="btn link back-btn" data-back>Back to menu</button>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
